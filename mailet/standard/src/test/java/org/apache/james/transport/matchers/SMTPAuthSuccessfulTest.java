@@ -22,6 +22,13 @@ package org.apache.james.transport.matchers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collection;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
+
+import org.apache.mailet.MailAddress;
+import org.apache.mailet.base.test.FakeMail;
 import org.apache.mailet.base.test.FakeMailContext;
 import org.apache.mailet.base.test.FakeMatcherConfig;
 import org.junit.Before;
@@ -35,12 +42,13 @@ public class SMTPAuthSuccessfulTest {
     public void setUp() throws Exception {
         testee = new SMTPAuthSuccessful();
         testee.init(FakeMatcherConfig.builder()
+        		.matcherName("matcherName")
             .mailetContext(FakeMailContext.defaultContext())
             .build());
     }
 
     @Test
-    public void matchShouldReturnRecipientsWhenAuthUserAttributeIsPresent() {
+    public void matchShouldReturnRecipientsWhenAuthUserAttributeIsPresent() throws AddressException, MessagingException {
         /*
         Question 1
 
@@ -50,10 +58,16 @@ public class SMTPAuthSuccessfulTest {
 
         As a result, the recipient should be returned
          */
+    	FakeMail fakeMail= FakeMail.builder()
+    			.recipient(new MailAddress("tranthithan97qt@gmail.com"))
+    			.attribute("org.apache.james.SMTPAuthUser", "true")
+    			.build();
+    	Collection<MailAddress> kq = testee.match(fakeMail);
+    	assertThat(kq).contains(new MailAddress("tranthithan97qt@gmail.com"));
     }
 
     @Test
-    public void matchShouldNotReturnRecipientsWhenAuthUserAttributeIsAbsent() {
+    public void matchShouldNotReturnRecipientsWhenAuthUserAttributeIsAbsent() throws AddressException, MessagingException {
         /*
         Question 2
 
@@ -63,6 +77,11 @@ public class SMTPAuthSuccessfulTest {
 
         As a result, the recipient should not be returned
          */
+    	FakeMail fakeMail= FakeMail.builder()
+    			.recipient(new MailAddress("tranthithan97qt@gmail.com"))
+    			.build();
+    	Collection<MailAddress> kq = testee.match(fakeMail);
+    	assertThat(kq).isNull();
     }
 
 }
